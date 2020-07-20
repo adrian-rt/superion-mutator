@@ -1,7 +1,7 @@
 #!/bin/bash
 
 cmake ./
-make -j4 
+make -j16
 
 cd js_parser
 
