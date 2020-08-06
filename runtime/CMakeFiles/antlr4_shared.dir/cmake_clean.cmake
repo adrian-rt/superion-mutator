@@ -1,4 +1,7 @@
 file(REMOVE_RECURSE
+  "../dist/libantlr4-runtime.pdb"
+  "../dist/libantlr4-runtime.so"
+  "../dist/libantlr4-runtime.so.4.7.1"
   "CMakeFiles/antlr4_shared.dir/src/ANTLRErrorListener.cpp.o"
   "CMakeFiles/antlr4_shared.dir/src/ANTLRErrorStrategy.cpp.o"
   "CMakeFiles/antlr4_shared.dir/src/ANTLRFileStream.cpp.o"
@@ -147,9 +150,6 @@ file(REMOVE_RECURSE
   "CMakeFiles/antlr4_shared.dir/src/tree/xpath/XPathTokenElement.cpp.o"
   "CMakeFiles/antlr4_shared.dir/src/tree/xpath/XPathWildcardAnywhereElement.cpp.o"
   "CMakeFiles/antlr4_shared.dir/src/tree/xpath/XPathWildcardElement.cpp.o"
-  "/home/adrian/Downloads/afl++/tree_mutation/dist/libantlr4-runtime.pdb"
-  "/home/adrian/Downloads/afl++/tree_mutation/dist/libantlr4-runtime.so.4.7.1"
-  "/home/adrian/Downloads/afl++/tree_mutation/dist/libantlr4-runtime.so"
 )
 
 # Per-language clean rules from dependency scanning.

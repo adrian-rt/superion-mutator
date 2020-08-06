@@ -5,10 +5,10 @@
 #include "ECMAScriptParser.h"
 #include "ECMAScriptBaseVisitor.h"
 #include "ECMAScriptSecondVisitor.h"
-#include "../../include/config.h"
-#include "../../examples/custom_mutators/custom_mutator_helpers.h" 
-#include "../../config.h"
-#include "../../include/afl-fuzz.h"
+#include "include/config.h"
+#include "examples/custom_mutators/custom_mutator_helpers.h" 
+#include "config.h"
+#include "include/afl-fuzz.h"
 
 using namespace antlr4;
 using namespace std;
@@ -18,8 +18,8 @@ extern "C" void *afl_custom_init(afl_t *afl, unsigned int seed);
 
 extern "C" void *afl_custom_deinit(afl_t *afl, unsigned int seed);
 
-static int parse(char* target,size_t len,char* second,size_t lenS);
-static void fuzz(int index, char** ret, size_t* retlen);
+static int parse(unsigned char* target,size_t len, unsigned char* second,size_t lenS);
+static void fuzz(int index, unsigned char** ret, size_t* retlen);
 
 
 #define MAXSAMPLES 10000
@@ -40,14 +40,6 @@ todo: abandon entry ce tre sa faca? 2 branches
 */
 
 #define DATA_SIZE (100)
-
-static const char *commands[] = {
-
-    "GET",
-    "PUT",
-    "DEL",
-
-};
 
 typedef struct my_mutator {
 
@@ -108,69 +100,13 @@ extern "C" size_t afl_custom_fuzz(void *data, // afl state
 	afl_state_t *afl = (afl_state_t * )data;
 
 
-  afl->stage_name = "tree";
-  afl->stage_short = "tree";
-
   struct queue_entry* target;
   u32 tid;
   u8* new_buf_tree;
-/*
-retry_external_pick_tree:
-  // Pick a random other queue entry for passing to external API 
-  do { tid = R(afl->queued_paths); } while (tid == afl->current_entry && afl->queued_paths > 1);
 
-  target = afl->queue;
-
-  while (tid >= 100) { target = target->next_100; tid -= 100; }
-  while (tid--) target = target->next;
-
-  //Make sure that the target has a reasonable length.
-
-  while (target && (target->len < 2 || target == afl->queue_cur) && afl->queued_paths > 1) {
-    target = target->next;
-    splicing_with++;
-  }
-  if (!target) goto retry_external_pick_tree;
-
-  // Read the additional testcase into a new buffer.
-  fd = open(target->fname, O_RDONLY);
-  if (fd < 0) PFATAL("Unable to open '%s'", target->fname);
-  new_buf_tree = ck_alloc_nozero(target->len);
-  ck_read(fd, new_buf_tree, target->len, target->fname);
-  close(fd);
-  */
   stage_max = parse(buf, buf_size, add_buf, add_buf_size);
   //ck_free(new_buf_tree);
   fuzz(stage_max, out_buf, &retlen);
-/*
-  orig_hit_cnt =  afl->queued_paths + afl->unique_crashes;
- 
-  for(stage_cur=0;stage_cur<stage_max;stage_cur++){
-     char* retbuf=NULL;
-     size_t retlen=0;
-     fuzz(stage_cur,&retbuf,&retlen);
-     if (retbuf) {
-        if(retlen>0){
-           if (common_fuzz_stuff(afl, retbuf, retlen)) {
-             free(retbuf);
-             //goto abandon_entry;
-           }
-        }
-      // Reset retbuf/retlen
-      free(retbuf);
-      retbuf = NULL;
-      retlen = 0;
-    }
-  }
-
-  new_hit_cnt = afl->queued_paths + afl->unique_crashes;
-
-  afl->stage_finds[STAGE_TREE]  += new_hit_cnt - orig_hit_cnt;
-  afl->stage_cycles[STAGE_TREE] += stage_max;
-
-*/
- 	//ret_val = 0;
-  	//goto abandon_entry;
 
 	return retlen;
 
@@ -178,7 +114,7 @@ retry_external_pick_tree:
 
 
 
-int parse(char* target,size_t len,char* second,size_t lenS) {
+int parse(unsigned char* target,size_t len,unsigned char* second,size_t lenS) {
 	vector<misc::Interval> intervals;
     intervals.clear();
 	vector<string> texts;
@@ -187,7 +123,7 @@ int parse(char* target,size_t len,char* second,size_t lenS) {
 	//parse the target
 	string targetString;
 	try{
-		targetString=string(target,len);
+		targetString=string((char*)target,len);
 		ANTLRInputStream input(targetString);
 		//ANTLRInputStream input(target);
 		ECMAScriptLexer lexer(&input);
@@ -221,7 +157,7 @@ int parse(char* target,size_t len,char* second,size_t lenS) {
 			//parse sencond
 			string secondString;
 			try{
-				secondString=string(second,lenS);
+				secondString=string((char*)second,lenS);
 				//cout<<targetString<<endl;
 				//cout<<secondString<<endl;
 
@@ -270,16 +206,16 @@ int parse(char* target,size_t len,char* second,size_t lenS) {
 	return num_of_smaples;
 }
 
-void fuzz(int index, char** result, size_t* retlen){
+void fuzz(int index, unsigned char** result, size_t* retlen){
 	
 	*retlen=ret[index].length();
-	*result=strdup(ret[index].c_str());
+	*result= (unsigned char*) strdup(ret[index].c_str());
 	if(!(*result)){
 		printf("failed to alloc result in fuzz(), exit(1);"); exit(1);
 	}
 }
 
-
+/*
 int main(){
   	ifstream in;
 	char target[100*1024];
@@ -313,3 +249,4 @@ int main(){
   	cout<<"num_of_smaples:"<<num_of_smaples<<endl;
 }
 
+*/
