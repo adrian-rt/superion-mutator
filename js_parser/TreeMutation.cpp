@@ -13,13 +13,32 @@
 using namespace antlr4;
 using namespace std;
 
+typedef struct my_mutator {
 
-extern "C" void *afl_custom_init(afl_t *afl, unsigned int seed);
+  afl_t *afl;
 
-extern "C" void *afl_custom_deinit(afl_t *afl, unsigned int seed);
+  // any additional data here!
+  size_t trim_size_current;
+  int    trimmming_steps;
+  int    cur_step;
+  u8 *mutator_buf;
+
+  // Reused buffers:
+  BUF_VAR(u8, fuzz);
+  BUF_VAR(u8, data);
+  BUF_VAR(u8, havoc);
+  BUF_VAR(u8, trim);
+  BUF_VAR(u8, post_process);
+
+} my_mutator_t;
+
+
+extern "C" my_mutator_t *afl_custom_init(afl_t *afl, unsigned int seed);
+
+extern "C" void *afl_custom_deinit(my_mutator_t *afl, unsigned int seed);
 
 static int parse(unsigned char* target,size_t len, unsigned char* second,size_t lenS);
-static void fuzz(int index, unsigned char** ret, size_t* retlen);
+static void fuzz(my_mutator * data, int index, unsigned char** ret, size_t* retlen);
 
 
 #define MAXSAMPLES 10000
@@ -41,23 +60,7 @@ todo: abandon entry ce tre sa faca? 2 branches
 
 #define DATA_SIZE (100)
 
-typedef struct my_mutator {
 
-  afl_t *afl;
-
-  // any additional data here!
-  size_t trim_size_current;
-  int    trimmming_steps;
-  int    cur_step;
-
-  // Reused buffers:
-  BUF_VAR(u8, fuzz);
-  BUF_VAR(u8, data);
-  BUF_VAR(u8, havoc);
-  BUF_VAR(u8, trim);
-  BUF_VAR(u8, post_process);
-
-} my_mutator_t;
 
 /**
  * Initialize this custom mutator
@@ -70,23 +73,45 @@ typedef struct my_mutator {
  *         There may be multiple instances of this mutator in one afl-fuzz run!
  *         Return NULL on error.
  */
-void *afl_custom_init(afl_t *afl, unsigned int seed) {
+my_mutator_t *afl_custom_init(afl_t * afl, unsigned int seed) {
 
    
-   srand(seed);
+  srand(seed);
+   
+  my_mutator_t *data = (my_mutator_t *) calloc(1, sizeof(my_mutator_t));
+  if (!data) {
 
-   return afl; // afl needs to be returned here, is used later on in el->data!!!
+    perror("afl_custom_init alloc");
+    return NULL;
+
+  }
+  /*	
+  if ((data->mutator_buf = malloc(MAX_FILE)) == NULL) {
+
+    perror("mutator_buf alloc");
+    return NULL;
+
+  }*/
+
+  data->afl = afl;
+  //data->seed = seed;
+
+
+  return data; 	  // this needs to be returned here, is used later on in el->data!!!
 
 }
 
-extern "C" void *afl_custom_deinit(afl_t *afl, unsigned int seed)
+extern "C" void *afl_custom_deinit(my_mutator_t *data, unsigned int seed)
 {
+
+  free(data->mutator_buf);
+  free(data);
 	
 }
 
 bool cmp(const string &x, const string &y){return x<y;}
 
-extern "C" size_t afl_custom_fuzz(void *data, // afl state
+extern "C" size_t afl_custom_fuzz(my_mutator_t *data, // afl state
                        uint8_t *buf, size_t buf_size, // input data to be mutated
                        uint8_t **out_buf, // output buffer
                        uint8_t *add_buf, size_t add_buf_size,  // add_buf can be NULL
@@ -97,7 +122,7 @@ extern "C" size_t afl_custom_fuzz(void *data, // afl state
 	char* retbuf;  
     static s32 splicing_with = -1;        /* Splicing with which test case?   */
 	static s32 stage_cur, stage_max;      /* Stage progression     */
-	afl_state_t *afl = (afl_state_t * )data;
+	//afl_state_t *afl = (afl_state_t * )data;
 
 
   struct queue_entry* target;
@@ -106,9 +131,10 @@ extern "C" size_t afl_custom_fuzz(void *data, // afl state
 
   stage_max = parse(buf, buf_size, add_buf, add_buf_size);
   //ck_free(new_buf_tree);
-  fuzz(stage_max, out_buf, &retlen);
+  // allocates out_buf
+  fuzz( data, stage_max, out_buf, &retlen);
 
-	return retlen;
+  return retlen;
 
 }
 
@@ -206,13 +232,14 @@ int parse(unsigned char* target,size_t len,unsigned char* second,size_t lenS) {
 	return num_of_smaples;
 }
 
-void fuzz(int index, unsigned char** result, size_t* retlen){
+void fuzz(my_mutator_t * data, int index, unsigned char** result, size_t* retlen){
 	
 	*retlen=ret[index].length();
 	*result= (unsigned char*) strdup(ret[index].c_str());
 	if(!(*result)){
 		printf("failed to alloc result in fuzz(), exit(1);"); exit(1);
 	}
+	data->mutator_buf = *result;
 }
 
 /*
