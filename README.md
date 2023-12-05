@@ -9,7 +9,13 @@ The AFLplusplus API the has been implemented in js_parser/TreeMutation.cpp.  Thi
 
 Building
 
-In order to build, execute the build.sh script inside this folder.
+In order to build the following steps are neccesary.
+
+ - Download AFLplusplus from the github repository:
+   `git clone https://github.com/AFLplusplus/AFLplusplus`
+ - build AFLplusplus by installing dependencies and executing `make`
+ - change the path to your AFLplusplus git repository
+ - execute the build.sh script inside this folder
 
 
 Running 
