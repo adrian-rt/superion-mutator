@@ -36,7 +36,7 @@ In order to build the following steps are neccesary.
 When you want to fuzz simply set the following env_variables prior to running AFLplusplus as usual:
 
 export AFL_CUSTOM_MUTATOR_ONLY=1
-export AFL_CUSTOM_MUTATOR_LIBRARY=~/Downloads/afl++/tree_mutation/js_parser/libTreeMutation.so
+export AFL_CUSTOM_MUTATOR_LIBRARY=[PATH to AFLplusplus]/js_parser/libTreeMutation.so
 
 
 
