@@ -14,7 +14,7 @@ In order to build the following steps are neccesary.
  - Download AFLplusplus from the github repository:
    `git clone https://github.com/AFLplusplus/AFLplusplus`
  - build AFLplusplus by installing dependencies and executing `make`
- - change the path to your AFLplusplus git repository
+ - change the path to your AFLplusplus git repository inside of build.sh
  - execute the build.sh script inside this folder
 
 
