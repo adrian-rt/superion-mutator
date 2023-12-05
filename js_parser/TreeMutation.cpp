@@ -6,7 +6,7 @@
 #include "ECMAScriptBaseVisitor.h"
 #include "ECMAScriptSecondVisitor.h"
 #include "include/config.h"
-#include "examples/custom_mutators/custom_mutator_helpers.h" 
+#include "custom_mutators/examples/custom_mutator_helpers.h" 
 #include "config.h"
 #include "include/afl-fuzz.h"
 
